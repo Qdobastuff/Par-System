@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Par Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #444;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        
+        input[type="number"] {
+            width: 80px;
+        }
+        
+        .location-card {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .location-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .location-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .location-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .item-row {
+            display: grid;
+            grid-template-columns: 30px 1fr 100px 100px 100px 80px;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            cursor: move;
+        }
+        
+        .item-row:hover {
+            background: #f8f9fa;
+        }
+        
+        .item-row.dragging {
+            opacity: 0.5;
+        }
+        
+        .drag-handle {
+            color: #999;
+            cursor: grab;
+            text-align: center;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        
+        .item-name {
+            font-weight: 500;
+        }
+        
+        .item-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .item-field label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+        
+        .item-field input {
+            width: 100%;
+            margin: 0;
+            text-align: center;
+        }
+        
+        .build-to-display {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            font-weight: 600;
+            color: #007bff;
+        }
+        
+        .add-item-form {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .master-items-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .master-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .setup-instructions {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .setup-instructions h3 {
+            margin-bottom: 10px;
+        }
+        
+        .setup-instructions ol {
+            margin-left: 20px;
+        }
+        
+        .setup-instructions li {
+            margin-bottom: 8px;
+        }
+        
+        #config-form {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        #config-form input {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 10px;
+        }
+        
+        .export-buttons {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .export-buttons h4 {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app"></div>
+    </div>
+
+    <script>
+        // Configuration
+        let CONFIG = {
+            apiKey: '',
+            spreadsheetId: '',
+            isConfigured: false
+        };
+
+        // Load config
+        function loadConfig() {
+            const saved = localStorage.getItem('parSystemConfig');
+            if (saved) {
+                CONFIG = JSON.parse(saved);
+            }
+        }
+
+        function saveConfig() {
+            localStorage.setItem('parSystemConfig', JSON.stringify(CONFIG));
+        }
+
+        // Determine view type
+        function getViewType() {
+            const path = window.location.pathname;
+            const hash = window.location.hash;
+            
+            if (path.includes('admin') || hash.includes('admin')) {
+                return 'admin';
+            }
+            
+            let match = path.match(/store-(\d+)/);
+            if (!match) {
+                match = hash.match(/store-(\d+)/);
+            }
+            
+            if (match) {
+                return { type: 'store', storeId: match[1] };
+            }
+            return 'setup';
+        }
+
+        // Google Sheets API
+        async function fetchSheet(sheetName) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${sheetName}?key=${CONFIG.apiKey}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch data');
+            const data = await response.json();
+            return data.values || [];
+        }
+
+        async function updateSheet(sheetName, values) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.spreadsheetId}/values/${sheetName}?valueInputOption=RAW&key=${CONFIG.apiKey}`;
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ values })
+            });
+            if (!response.ok) throw new Error('Failed to update data');
+            return response.json();
+        }
+
+        // Data storage
+        let masterItems = [];
+        let storeLocations = [];
+        let inventoryPars = [];
+
+        async function loadAllData() {
+            try {
+                const [items, locations, pars] = await Promise.all([
+                    fetchSheet('MasterItems'),
+                    fetchSheet('StoreLocations'),
+                    fetchSheet('InventoryPars')
+                ]);
+                
+                masterItems = items.slice(1).map(row => row[0]).filter(Boolean);
+                storeLocations = locations.slice(1).map(row => ({
+                    storeId: row[0],
+                    locationName: row[1],
+                    order: parseInt(row[2]) || 0
+                }));
+                inventoryPars = pars.slice(1).map(row => ({
+                    storeId: row[0],
+                    locationName: row[1],
+                    itemName: row[2],
+                    par: parseFloat(row[3]) || 0,
+                    onHand: parseFloat(row[4]) || 0,
+                    buildTo: parseFloat(row[5]) || 0,
+                    order: parseInt(row[6]) || 0
+                }));
+                
+                return true;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                return false;
+            }
+        }
+
+        async function saveMasterItems() {
+            const values = [['Item Name'], ...masterItems.map(item => [item])];
+            await updateSheet('MasterItems', values);
+        }
+
+        async function saveStoreLocations() {
+            const values = [
+                ['Store ID', 'Location Name', 'Order'],
+                ...storeLocations.map(loc => [loc.storeId, loc.locationName, loc.order])
+            ];
+            await updateSheet('StoreLocations', values);
+        }
+
+        async function saveInventoryPars() {
+            const values = [
+                ['Store ID', 'Location Name', 'Item Name', 'Par', 'On Hand', 'Build To', 'Order'],
+                ...inventoryPars.map(par => [par.storeId, par.locationName, par.itemName, par.par, par.onHand, par.buildTo, par.order])
+            ];
+            await updateSheet('InventoryPars', values);
+        }
+
+        // Calculate build to
+        function calculateBuildTo(par, onHand) {
+            const needed = par - onHand;
+            return needed > 0 ? Math.ceil(needed) : 0;
+        }
+
+        // Render functions
+        function renderSetup() {
+            return `
+                <div class="setup-instructions">
+                    <h3>🚀 Setup Instructions</h3>
+                    <ol>
+                        <li>Create a new Google Spreadsheet</li>
+                        <li>Create three sheets named exactly: <strong>MasterItems</strong>, <strong>StoreLocations</strong>, <strong>InventoryPars</strong></li>
+                        <li>In MasterItems, add header "Item Name" in A1</li>
+                        <li>In StoreLocations, add headers "Store ID", "Location Name", "Order" in A1:C1</li>
+                        <li>In InventoryPars, add headers "Store ID", "Location Name", "Item Name", "Par", "On Hand", "Build To", "Order" in A1:G1</li>
+                        <li>Enable Google Sheets API in Google Cloud Console</li>
+                        <li>Create an API key with Sheets API access</li>
+                        <li>Make your spreadsheet public (Share > Anyone with link can view)</li>
+                    </ol>
+                </div>
+                <div id="config-form">
+                    <h3>Enter Configuration</h3>
+                    <input type="text" id="api-key" placeholder="Google Sheets API Key" value="${CONFIG.apiKey}">
+                    <input type="text" id="spreadsheet-id" placeholder="Spreadsheet ID (from URL)" value="${CONFIG.spreadsheetId}">
+                    <button class="btn" onclick="saveConfiguration()">Save Configuration</button>
+                </div>
+            `;
+        }
+
+        function renderAdmin() {
+            return `
+                <h1>Admin Dashboard</h1>
+                <p class="subtitle">Manage master items and view all stores</p>
+                
+                <div class="section">
+                    <h2 class="section-title">Master Items List</h2>
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="new-item" placeholder="New item name">
+                        <button class="btn" onclick="addMasterItem()">Add Item</button>
+                    </div>
+                    <div class="master-items-list">
+                        ${masterItems.map(item => `
+                            <div class="master-item">
+                                <span>${item}</span>
+                                <button class="btn btn-danger btn-small" onclick="removeMasterItem('${item}')">✕</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2 class="section-title">All Stores</h2>
+                    <div>
+                        ${getUniqueStores().map(storeId => `
+                            <button class="btn" onclick="window.location.hash='store-${storeId}'">Store ${storeId}</button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStore(storeId) {
+            const locations = storeLocations
+                .filter(loc => loc.storeId === storeId)
+                .sort((a, b) => a.order - b.order);
+            
+            return `
+                <h1>Store ${storeId} - Truck Order</h1>
+                <p class="subtitle">Update on-hand counts and generate your order</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="new-location-name" placeholder="New location name (e.g., Walk-in Cooler)">
+                    <button class="btn btn-success" onclick="addLocation('${storeId}')">Add Location</button>
+                </div>
+                
+                ${locations.map(location => renderLocation(storeId, location)).join('')}
+            `;
+        }
+
+        function renderLocation(storeId, location) {
+            const items = inventoryPars
+                .filter(par => par.storeId === storeId && par.locationName === location.locationName)
+                .sort((a, b) => a.order - b.order);
+            
+            const availableItems = masterItems.filter(item => 
+                !items.find(i => i.itemName === item)
+            );
+            
+            return `
+                <div class="location-card">
+                    <div class="location-header">
+                        <div class="location-name">${location.locationName}</div>
+                        <div class="location-actions">
+                            <button class="btn btn-warning btn-small" onclick="clearAllOnHand('${storeId}', '${location.locationName}')">Clear All On Hand</button>
+                            <button class="btn btn-danger btn-small" onclick="removeLocation('${storeId}', '${location.locationName}')">Delete Location</button>
+                        </div>
+                    </div>
+                    
+                    <div class="export-buttons">
+                        <h4>Export Options (Coming Soon):</h4>
+                        <button class="btn btn-small" disabled>Export Alphabetical</button>
+                        <button class="btn btn-small" disabled>Export by Category</button>
+                        <button class="btn btn-small" disabled>Copy to Clipboard</button>
+                        <button class="btn btn-small" disabled>Export to CSV</button>
+                    </div>
+                    
+                    <div id="items-${storeId}-${location.locationName.replace(/\s/g, '-')}" class="items-container">
+                        ${items.map((item, index) => {
+                            const autoBuildTo = calculateBuildTo(item.par, item.onHand);
+                            const displayBuildTo = item.buildTo !== autoBuildTo && item.buildTo !== 0 ? item.buildTo : autoBuildTo;
+                            
+                            return `
+                            <div class="item-row" draggable="true" data-store="${storeId}" data-location="${location.locationName}" data-item="${item.itemName}">
+                                <span class="drag-handle">☰</span>
+                                <span class="item-name">${item.itemName}</span>
+                                <div class="item-field">
+                                    <label>PAR</label>
+                                    <input type="number" step="0.5" value="${item.par}" onchange="updateField('${storeId}', '${location.locationName}', '${item.itemName}', 'par', this.value)">
+                                </div>
+                                <div class="item-field">
+                                    <label>ON HAND</label>
+                                    <input type="number" step="0.5" value="${item.onHand}" onchange="updateField('${storeId}', '${location.locationName}', '${item.itemName}', 'onHand', this.value)">
+                                </div>
+                                <div class="item-field">
+                                    <label>BUILD TO</label>
+                                    <input type="number" step="0.5" class="build-to-display" value="${displayBuildTo}" onchange="updateField('${storeId}', '${location.locationName}', '${item.itemName}', 'buildTo', this.value)">
+                                </div>
+                                <button class="btn btn-danger btn-small" onclick="removeItem('${storeId}', '${location.locationName}', '${item.itemName}')">Remove</button>
+                            </div>
+                        `}).join('')}
+                    </div>
+                    
+                    ${availableItems.length > 0 ? `
+                        <div class="add-item-form">
+                            <select id="add-item-${storeId}-${location.locationName.replace(/\s/g, '-')}">
+                                <option value="">Select item to add...</option>
+                                ${availableItems.map(item => `<option value="${item}">${item}</option>`).join('')}
+                            </select>
+                            <input type="number" step="0.5" id="add-par-${storeId}-${location.locationName.replace(/\s/g, '-')}" placeholder="Par level" value="0">
+                            <button class="btn btn-success" onclick="addItemToLocation('${storeId}', '${location.locationName}')">Add Item</button>
+                        </div>
+                    ` : '<p style="color: #666; margin-top: 10px;">All items added</p>'}
+                </div>
+            `;
+        }
+
+        function getUniqueStores() {
+            return [...new Set(storeLocations.map(loc => loc.storeId))].sort();
+        }
+
+        // Actions
+        async function addMasterItem() {
+            const input = document.getElementById('new-item');
+            const itemName = input.value.trim();
+            if (itemName && !masterItems.includes(itemName)) {
+                masterItems.push(itemName);
+                await saveMasterItems();
+                input.value = '';
+                render();
+            }
+        }
+
+        async function removeMasterItem(itemName) {
+            if (confirm(`Remove "${itemName}" from master list? This will remove it from all stores.`)) {
+                masterItems = masterItems.filter(item => item !== itemName);
+                inventoryPars = inventoryPars.filter(par => par.itemName !== itemName);
+                await saveMasterItems();
+                await saveInventoryPars();
+                render();
+            }
+        }
+
+        async function addLocation(storeId) {
+            const input = document.getElementById('new-location-name');
+            const locationName = input.value.trim();
+            if (locationName) {
+                const exists = storeLocations.find(loc => 
+                    loc.storeId === storeId && loc.locationName === locationName
+                );
+                if (!exists) {
+                    const maxOrder = Math.max(0, ...storeLocations.filter(loc => loc.storeId === storeId).map(loc => loc.order));
+                    storeLocations.push({
+                        storeId,
+                        locationName,
+                        order: maxOrder + 1
+                    });
+                    await saveStoreLocations();
+                    input.value = '';
+                    render();
+                }
+            }
+        }
+
+        async function removeLocation(storeId, locationName) {
+            if (confirm(`Delete "${locationName}" and all its items?`)) {
+                storeLocations = storeLocations.filter(loc => 
+                    !(loc.storeId === storeId && loc.locationName === locationName)
+                );
+                inventoryPars = inventoryPars.filter(par => 
+                    !(par.storeId === storeId && par.locationName === locationName)
+                );
+                await saveStoreLocations();
+                await saveInventoryPars();
+                render();
+            }
+        }
+
+        async function clearAllOnHand(storeId, locationName) {
+            if (confirm(`Clear all "On Hand" values for ${locationName}? This will reset them to 0 for the next truck order.`)) {
+                inventoryPars.forEach(par => {
+                    if (par.storeId === storeId && par.locationName === locationName) {
+                        par.onHand = 0;
+                        par.buildTo = calculateBuildTo(par.par, 0);
+                    }
+                });
+                await saveInventoryPars();
+                render();
+            }
+        }
+
+        async function addItemToLocation(storeId, locationName) {
+            const selectId = `add-item-${storeId}-${locationName.replace(/\s/g, '-')}`;
+            const parId = `add-par-${storeId}-${locationName.replace(/\s/g, '-')}`;
+            const itemName = document.getElementById(selectId).value;
+            const par = parseFloat(document.getElementById(parId).value) || 0;
+            
+            if (itemName) {
+                const maxOrder = Math.max(0, ...inventoryPars.filter(p => 
+                    p.storeId === storeId && p.locationName === locationName
+                ).map(p => p.order));
+                
+                inventoryPars.push({
+                    storeId,
+                    locationName,
+                    itemName,
+                    par,
+                    onHand: 0,
+                    buildTo: calculateBuildTo(par, 0),
+                    order: maxOrder + 1
+                });
+                await saveInventoryPars();
+                render();
+            }
+        }
+
+        async function removeItem(storeId, locationName, itemName) {
+            inventoryPars = inventoryPars.filter(par => 
+                !(par.storeId === storeId && par.locationName === locationName && par.itemName === itemName)
+            );
+            await saveInventoryPars();
+            render();
+        }
+
+        async function updateField(storeId, locationName, itemName, field, newValue) {
+            const item = inventoryPars.find(par => 
+                par.storeId === storeId && par.locationName === locationName && par.itemName === itemName
+            );
+            if (item) {
+                item[field] = parseFloat(newValue) || 0;
+                
+                // Auto-calculate buildTo if par or onHand changed
+                if (field === 'par' || field === 'onHand') {
+                    item.buildTo = calculateBuildTo(item.par, item.onHand);
+                }
+                
+                await saveInventoryPars();
+                
+                // Re-render just this item's buildTo field if needed
+                if (field !== 'buildTo') {
+                    render();
+                }
+            }
+        }
+
+        // Drag and drop
+        function setupDragAndDrop() {
+            let draggedElement = null;
+            
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('item-row')) {
+                    draggedElement = e.target;
+                    e.target.classList.add('dragging');
+                }
+            });
+            
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('item-row')) {
+                    e.target.classList.remove('dragging');
+                }
+            });
+            
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(e.target.closest('.items-container'), e.clientY);
+                const container = e.target.closest('.items-container');
+                if (container && draggedElement) {
+                    if (afterElement == null) {
+                        container.appendChild(draggedElement);
+                    } else {
+                        container.insertBefore(draggedElement, afterElement);
+                    }
+                }
+            });
+            
+            document.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                if (draggedElement) {
+                    const storeId = draggedElement.dataset.store;
+                    const locationName = draggedElement.dataset.location;
+                    const container = draggedElement.closest('.items-container');
+                    const items = Array.from(container.querySelectorAll('.item-row'));
+                    
+                    items.forEach((item, index) => {
+                        const itemName = item.dataset.item;
+                        const par = inventoryPars.find(p => 
+                            p.storeId === storeId && p.locationName === locationName && p.itemName === itemName
+                        );
+                        if (par) {
+                            par.order = index;
+                        }
+                    });
+                    
+                    await saveInventoryPars();
+                }
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.item-row:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Main render
+        async function render() {
+            const app = document.getElementById('app');
+            
+            if (!CONFIG.isConfigured) {
+                app.innerHTML = renderSetup();
+                return;
+            }
+            
+            app.innerHTML = '<div class="loading">Loading data...</div>';
+            
+            const success = await loadAllData();
+            if (!success) {
+                app.innerHTML = '<div class="error">Failed to load data. Check your API key and spreadsheet ID.</div>' + renderSetup();
+                return;
+            }
+            
+            const view = getViewType();
+            
+            if (view === 'admin') {
+                app.innerHTML = renderAdmin();
+            } else if (view.type === 'store') {
+                app.innerHTML = renderStore(view.storeId);
+                setupDragAndDrop();
+            } else {
+                app.innerHTML = renderSetup();
+            }
+        }
+
+        function saveConfiguration() {
+            CONFIG.apiKey = document.getElementById('api-key').value.trim();
+            CONFIG.spreadsheetId = document.getElementById('spreadsheet-id').value.trim();
+            CONFIG.isConfigured = !!(CONFIG.apiKey && CONFIG.spreadsheetId);
+            saveConfig();
+            render();
+        }
+
+        // Initialize
+        loadConfig();
+        render();
+        
+        window.addEventListener('hashchange', render);
+    </script>
+</body>
+</html>
